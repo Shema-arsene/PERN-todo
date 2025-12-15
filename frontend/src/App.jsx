@@ -10,8 +10,15 @@ const App = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    setDescription("")
-    console.log("Todo added!")
+    try {
+      await axios.post("http://localhost:5000/todos", {
+        description,
+        completed: false,
+      })
+      setDescription("")
+    } catch (err) {
+      console.error("Error adding todo:", err)
+    }
   }
 
   return (
