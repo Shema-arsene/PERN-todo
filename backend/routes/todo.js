@@ -43,7 +43,10 @@ router.put("/:id", async (req, res) => {
     if (updateTodo.rows.length === 0) {
       return res.status(404).json({ msg: "Todo not found" })
     }
-    res.status(200).json(updateTodo.rows[0])
+    res.status(200).json({
+      message: "Todo updated successfully",
+      todo: updateTodo.rows[0],
+    })
   } catch (error) {
     console.error(err.message)
     res.status(500).send("Server Error")
