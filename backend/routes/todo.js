@@ -46,6 +46,20 @@ router.put("/:id", async (req, res) => {
     res.status(200).json(updateTodo.rows[0])
   } catch (error) {
     console.error(err.message)
+    res.status(500).send("Server Error")
+  }
+})
+
+// Delete a todo
+router.delete("/:id", async (req, res) => {
+  try {
+    const { id } = req.params
+    await pool.query("DELETE FROM todo WHERE todo_id = $1 RETURNING *", [id])
+
+    res.status(200).json("Todo deleted successfully!")
+  } catch (error) {
+    console.error(err.message)
+    res.status(500).send("Server Error")
   }
 })
 
