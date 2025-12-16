@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import axios from "axios"
 
 const App = () => {
@@ -6,9 +6,31 @@ const App = () => {
   const [todos, setTodos] = useState([])
   const [editTodo, setEditTodo] = useState(null)
   const [editedText, setEditedText] = useState("")
+  const [error, setError] = useState("")
+
+  const getTodos = async () => {
+    try {
+      const response = await axios.get("http://localhost:5000/todos")
+      setTodos(response.data)
+      console.log(response.data)
+    } catch (err) {
+      console.error("Error adding todo:", err)
+    }
+  }
+
+  useEffect(() => {
+    getTodos()
+  }, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+
+    if (!description.trim()) {
+      setError("Todo cannot be empty")
+      return
+    }
+
+    setError("")
 
     try {
       await axios.post("http://localhost:5000/todos", {
@@ -25,6 +47,7 @@ const App = () => {
     <main className="min-h-screen w-full flex justify-center items-center bg-gray-900">
       <div className="bg-gray-50 rounded-xl shadow-xl p-8 w-full max-w-lg">
         <h1 className="text-3xl text-gray-900 font-bold">PERN - Todo App</h1>
+        {error && <p className="text-red-500 text-sm mt-3">{error}</p>}
         <form
           onSubmit={handleSubmit}
           className="flex items-center gap-3 border border-gray-300 rounded-md p-1 my-5"
