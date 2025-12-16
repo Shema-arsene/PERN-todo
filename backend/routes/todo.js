@@ -38,7 +38,7 @@ router.put("/:id", async (req, res) => {
 
     const updateTodo = await pool.query(
       "UPDATE todo SET description = $1, completed = $2 WHERE todo_id = $3 RETURNING *",
-      [description, completed, id]
+      [description, completed || false, id]
     )
     if (updateTodo.rows.length === 0) {
       return res.status(404).json({ msg: "Todo not found" })

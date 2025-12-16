@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react"
 import axios from "axios"
+import { MdModeEditOutline, MdOutlineDone } from "react-icons/md"
+import { FaTrash } from "react-icons/fa"
+import { IoCloseOutline } from "react-icons/io5"
 
 const App = () => {
   const [description, setDescription] = useState("")
   const [todos, setTodos] = useState([])
-  const [editTodo, setEditTodo] = useState(null)
+  const [editingTodo, setEditingTodo] = useState(null)
   const [editedText, setEditedText] = useState("")
   const [error, setError] = useState("")
 
@@ -38,8 +41,51 @@ const App = () => {
         completed: false,
       })
       setDescription("")
+      getTodos()
     } catch (err) {
       console.error("Error adding todo:", err)
+    }
+  }
+
+  const saveEditedTodo = async (todoId) => {
+    try {
+      await axios.put(`http://localhost:5000/todos/${todoId}`, {
+        description: editedText,
+      })
+      setEditingTodo(null)
+      setEditedText("")
+      getTodos()
+    } catch (err) {
+      console.error("Error updating todo:", err)
+    }
+  }
+
+  const deleteTodo = async (todoId) => {
+    try {
+      await axios.delete(`http://localhost:5000/todos/${todoId}`)
+      setTodos(todos.filter((todo) => todo.todo_id !== todoId))
+      getTodos()
+    } catch (err) {
+      console.error("Error updating todo:", err)
+    }
+  }
+
+  const toggleCompleted = async (todoId) => {
+    try {
+      const todo = todos.find((todo) => todo.todo_id === todoId)
+      await axios.put(`http://localhost:5000/todos/${todoId}`, {
+        description: todo.description,
+        completed: !todo.completed,
+      })
+      setTodos(
+        todos.map((todo) =>
+          todo.todo_id === todoId
+            ? { ...todo, completed: !todo.completed }
+            : todo
+        )
+      )
+    } catch (err) {
+      console.error("Error updating todo:", err)
     }
   }
 
@@ -68,6 +114,85 @@ const App = () => {
             Add Todo
           </button>
         </form>
+        <section>
+          {todos.length === 0 ? (
+            <p className="text-lg text-gray-700">
+              No tasks available. Add a new task!
+            </p>
+          ) : (
+            <div className="p-4 flex flex-col gap-4">
+              {todos.map((todo) => (
+                <div key={todo.todo_id} className="bg-gray-50">
+                  {editingTodo === todo.todo_id ? (
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault()
+                        setEditingTodo(null)
+                        setEditedText("")
+                      }}
+                      className="flex items-center gap-3"
+                    >
+                      <input
+                        type="text"
+                        value={editedText}
+                        onChange={(e) => setEditedText(e.target.value)}
+                        className="flex-1 p-1.5 border border-gray-300 rounded-md text-gray-700 outline-none shadow-inner"
+                      />
+                      <button
+                        onClick={() => saveEditedTodo(todo.todo_id)}
+                        className="font-medium bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-md cursor-pointer whitespace-nowrap"
+                      >
+                        <MdOutlineDone size={16} />
+                      </button>
+                      <button
+                        onClick={() => {
+                          setEditingTodo(null)
+                          setEditedText("")
+                        }}
+                        className="font-medium bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-md cursor-pointer whitespace-nowrap"
+                      >
+                        <IoCloseOutline size={16} />
+                      </button>
+                    </form>
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-start gap-2 overflow-hidden">
+                        <button
+                          onClick={() => toggleCompleted(todo.todo_id)}
+                          className={`h-6 w-6 rounded-full border border-gray-300 flex items-center justify-center shrink-0 cursor-pointer ${
+                            todo.completed
+                              ? "bg-green-500 border-green-500 text-white"
+                              : "border-gray-300 hover:border-blue-400"
+                          }`}
+                        >
+                          {todo.completed && <MdOutlineDone size={16} />}
+                        </button>
+                        <p>{todo.description}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => {
+                            setEditingTodo(todo.todo_id),
+                              setEditedText(todo.description)
+                          }}
+                          className="p-1.5 text-blue-500 hover:text-blue-700 rounded-full bg-blue-50 hover:bg-blue-100 duration-200 cursor-pointer"
+                        >
+                          <MdModeEditOutline />
+                        </button>
+                        <button
+                          onClick={() => deleteTodo(todo.todo_id)}
+                          className="p-1.5 text-red-500 hover:text-red-700 rounded-full bg-red-50 hover:bg-red-100 duration-200 cursor-pointer"
+                        >
+                          <FaTrash />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
       </div>
     </main>
   )
